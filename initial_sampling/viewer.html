@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>2画像表示スライダー (リンク付き)</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 10px;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .viewer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .slider-group {
+    margin: 10px 0;
+  }
+  label {
+    margin-right: 10px;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 360px;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    outline: none;
+    margin: 0 10px 0 0;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    border: 1.5px solid #999;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: -7px;
+  }
+  input[type=range]:focus::-webkit-slider-thumb {
+    background: gray;
+    border-color: #666;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    border: 1.5px solid #999;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  input[type=range]:focus::-moz-range-thumb {
+    background: gray;
+    border-color: #666;
+  }
+  img {
+    max-width: 75vw;
+    max-height: 75vh;
+    object-fit: contain;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+  }
+  #linkBtn {
+    margin: 20px 0;
+    padding: 8px 16px;
+    cursor: pointer;
+    border: 2px solid #333;
+    background-color: white;
+    font-weight: bold;
+    user-select: none;
+  }
+  #linkBtn.active {
+    background-color: #666;
+    color: white;
+    border-color: #666;
+  }
+</style>
+</head>
+<body>
+
+  <button id="linkBtn" onclick="toggleLink()">Link: OFF</button>
+
+  <div class="container">
+    <!-- 画像1 -->
+    <div class="viewer" id="viewer1">
+      <div class="slider-group">
+        <label for="randomNum1">random_num:</label>
+        <input type="range" id="randomNum1" min="2" max="6" step="1" value="2" oninput="updateImage(1, this)" tabindex="0">
+        <span id="randomNumVal1">2</span>
+      </div>
+      <div class="slider-group">
+        <label for="rad1">rad:</label>
+        <input type="range" id="rad1" min="0" max="1" step="1" value="0" oninput="updateImage(1, this)" tabindex="0">
+        <span id="radVal1">0.5</span>
+      </div>
+      <div class="slider-group">
+        <label for="obj1">objective:</label>
+        <select id="obj1" onchange="updateImage(1)" tabindex="0">
+          <option value="stress">stress</option>
+          <option value="compliance">compliance</option>
+          <option value="cost">cost</option>
+        </select>
+      </div>
+      <img id="pdfImage1" src="pngs/Random2_rad0.5_stress.png" alt="画像1が読み込めません">
+    </div>
+
+    <!-- 画像2 -->
+    <div class="viewer" id="viewer2">
+      <div class="slider-group">
+        <label for="randomNum2">random_num:</label>
+        <input type="range" id="randomNum2" min="2" max="6" step="1" value="2" oninput="updateImage(2, this)" tabindex="0">
+        <span id="randomNumVal2">2</span>
+      </div>
+      <div class="slider-group">
+        <label for="rad2">rad:</label>
+        <input type="range" id="rad2" min="0" max="1" step="1" value="0" oninput="updateImage(2, this)" tabindex="0">
+        <span id="radVal2">0.5</span>
+      </div>
+      <div class="slider-group">
+        <label for="obj2">objective:</label>
+        <select id="obj2" onchange="updateImage(2)" tabindex="0">
+          <option value="stress">stress</option>
+          <option value="compliance">compliance</option>
+          <option value="cost">cost</option>
+        </select>
+      </div>
+      <img id="pdfImage2" src="pngs/Random2_rad0.5_stress.png" alt="画像2が読み込めません">
+    </div>
+  </div>
+
+<script>
+  const radMap = { 0: "0.5", 1: "0.75" };
+  let linkActive = false;
+
+  const linkBtn = document.getElementById('linkBtn');
+  function toggleLink() {
+    linkActive = !linkActive;
+    linkBtn.textContent = 'Link: ' + (linkActive ? 'ON' : 'OFF');
+    if (linkActive) {
+      linkBtn.classList.add('active');
+    } else {
+      linkBtn.classList.remove('active');
+    }
+  }
+
+  function updateImage(viewerNum, changedElem=null) {
+    // 連動ONかつスライダー操作の場合
+    if (linkActive && changedElem && changedElem.tagName === 'INPUT' && changedElem.type === 'range') {
+      // 対象inputのid例：randomNum1, rad2 など
+      const idBase = changedElem.id.replace(/[12]$/, '');
+      const value = changedElem.value;
+
+      // もう片方のviewer番号
+      const otherViewerNum = viewerNum === 1 ? 2 : 1;
+
+      // 他方のinput要素を同じ値に設定してから更新
+      const otherInput = document.getElementById(idBase + otherViewerNum);
+      if (otherInput && otherInput.value !== value) {
+        otherInput.value = value;
+        updateImage(otherViewerNum);
+      }
+    }
+
+    // 今回viewerの値を取得
+    const randomNum = document.getElementById('randomNum' + viewerNum).value;
+    const radIdx = document.getElementById('rad' + viewerNum).value;
+    const radVal = radMap[radIdx];
+    const obj = document.getElementById('obj' + viewerNum).value;
+
+    // 表示更新
+    document.getElementById('randomNumVal' + viewerNum).textContent = randomNum;
+    document.getElementById('radVal' + viewerNum).textContent = radVal;
+
+    // 画像更新
+    const filename = `pngs/Random${randomNum}_rad${radVal}_${obj}.png`;
+    document.getElementById('pdfImage' + viewerNum).src = filename;
+  }
+</script>
+
+</body>
+</html>
